@@ -1,0 +1,9 @@
+﻿author = Itorius & team
+version = 0.0.1
+displayName = Layer Library
+homepage = http://forums.terraria.org/index.php?threads/itorius-mods.42289/
+hideCode = false
+hideResources = true
+includeSource = false
+buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*, .git\*, .editorconfig, .gitignore, *.sln, *.md
+includePDB = true
