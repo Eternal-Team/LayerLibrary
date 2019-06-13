@@ -19,7 +19,7 @@ namespace LayerLibrary
 
 		public virtual bool Visible => true;
 
-		private Dictionary<Point16, T> data;
+		protected Dictionary<Point16, T> data;
 
 		public ModLayer()
 		{

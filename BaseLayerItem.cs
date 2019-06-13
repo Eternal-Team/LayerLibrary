@@ -36,17 +36,12 @@ namespace LayerLibrary
 		public override bool UseItem(Player player)
 		{
 			Rectangle rectangle = new Rectangle(
-				(int)(player.position.X + player.width * 0.5f - Player.tileRangeX * 16),
-				(int)(player.position.Y + player.height * 0.5f - Player.tileRangeY * 16),
-				Player.tileRangeX * 16 * 2,
-				Player.tileRangeY * 16 * 2);
+				(int)(player.position.X + player.width * 0.5f - Player.tileRangeX * 32),
+				(int)(player.position.Y + player.height * 0.5f - Player.tileRangeY * 32),
+				Player.tileRangeX * 64,
+				Player.tileRangeY * 64);
 
-			if (rectangle.Contains(Main.MouseWorld.ToPoint()))
-			{
-				return true;
-			}
-
-			return false;
+			return rectangle.Contains(Main.MouseWorld.ToPoint());
 		}
 	}
 }
