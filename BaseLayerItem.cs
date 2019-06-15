@@ -5,7 +5,7 @@ using Terraria.ID;
 
 namespace LayerLibrary
 {
-	public abstract class BaseLayerItem<T> : BaseItem where T : ModLayerElement, new()
+	public abstract class BaseLayerItem<T> : BaseItem where T : ModLayerElement<T>, new()
 	{
 		public abstract ModLayer<T> Layer { get; }
 
@@ -41,7 +41,7 @@ namespace LayerLibrary
 				Player.tileRangeX * 64,
 				Player.tileRangeY * 64);
 
-			return rectangle.Contains(Main.MouseWorld.ToPoint());
+			return rectangle.Contains(Player.tileTargetX*16, Player.tileTargetY * 16);
 		}
 	}
 }

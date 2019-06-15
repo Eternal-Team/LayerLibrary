@@ -1,29 +1,17 @@
-﻿using BaseLibrary;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.DataStructures;
-using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
 namespace LayerLibrary
 {
-	public interface IModLayer
+	public abstract class ModLayer<T> where T : ModLayerElement<T>, new()
 	{
-		bool ContainsKey(int i, int j);
-
-		int TileSize { get; }
-	}
-
-	public abstract class ModLayer<T> : IModLayer where T : ModLayerElement, new()
-	{
-		public abstract string Name { get; }
+		public abstract int TileSize { get; }
 
 		public virtual bool Visible => true;
-
-		public abstract int TileSize { get; }
 
 		protected Dictionary<Point16, T> data;
 
@@ -121,8 +109,8 @@ namespace LayerLibrary
 
 		public virtual bool Place(BaseLayerItem<T> item)
 		{
-			int posX = (int)(Main.MouseWorld.X / 16f);
-			int posY = (int)(Main.MouseWorld.Y / 16f);
+			int posX = Player.tileTargetX;
+			int posY = Player.tileTargetY;
 
 			for (int i = 1; i <= TileSize; i++)
 			{
@@ -139,10 +127,10 @@ namespace LayerLibrary
 					Layer = this
 				};
 				data.Add(new Point16(posX, posY), element);
+				element.OnPlace();
 
 				element.UpdateFrame();
-
-				foreach (T neighbor in GetNeighbors(new Point16(posX, posY))) neighbor.UpdateFrame();
+				foreach (T neighbor in element.GetNeighbors()) neighbor.UpdateFrame();
 
 				return true;
 			}
@@ -152,8 +140,8 @@ namespace LayerLibrary
 
 		public virtual void Remove(BaseLayerItem<T> item)
 		{
-			int posX = (int)(Main.MouseWorld.X / 16f);
-			int posY = (int)(Main.MouseWorld.Y / 16f);
+			int posX = Player.tileTargetX;
+			int posY = Player.tileTargetY;
 
 			for (int i = 1; i <= TileSize; i++)
 			{
@@ -163,10 +151,11 @@ namespace LayerLibrary
 
 			if (ContainsKey(posX, posY))
 			{
-				this[posX, posY].OnRemove();
-				data.Remove(new Point16(posX, posY));
+				T element = this[posX, posY];
 
-				foreach (T neighbor in GetNeighbors(new Point16(posX, posY))) neighbor.UpdateFrame();
+				foreach (T neighbor in element.GetNeighbors()) neighbor.UpdateFrame();
+				element.OnRemove();
+				data.Remove(new Point16(posX, posY));
 
 				Item.NewItem(posX * 16, posY * 16, TileSize * 16, TileSize * 16, item.item.type);
 			}
@@ -174,71 +163,7 @@ namespace LayerLibrary
 
 		public virtual void Interact()
 		{
-		}
-
-		public IEnumerable<T> GetNeighbors(Point16 Position)
-		{
-			if (ContainsKey(Position.X + TileSize, Position.Y)) yield return this[Position.X + TileSize, Position.Y];
-			if (ContainsKey(Position.X - TileSize, Position.Y)) yield return this[Position.X - TileSize, Position.Y];
-			if (ContainsKey(Position.X, Position.Y + TileSize)) yield return this[Position.X, Position.Y + TileSize];
-			if (ContainsKey(Position.X, Position.Y - TileSize)) yield return this[Position.X, Position.Y - TileSize];
-		}
-
-		public T GetNeighbor(int x, int y, Side side)
-		{
-			if (!ContainsKey(x, y)) throw new Exception($"Layer contains no element at position {{X: {x}; Y: {y}}}");
-
-			switch (side)
-			{
-				case Side.Bottom: return ContainsKey(x, y + TileSize) ? this[x, y + TileSize] : null;
-				case Side.Top: return ContainsKey(x, y - TileSize) ? this[x, y - TileSize] : null;
-				case Side.Left: return ContainsKey(x - TileSize, y) ? this[x - TileSize, y] : null;
-				case Side.Right: return ContainsKey(x + TileSize, y) ? this[x + TileSize, y] : null;
-			}
-
-			return null;
-		}
-	}
-
-	public abstract class ModLayerElement
-	{
-		public IModLayer Layer;
-
-		public Point16 Position;
-		public Point16 Frame;
-
-		public abstract string Texture { get; }
-
-		public virtual void UpdateFrame()
-		{
-			short frameX = 0, frameY = 0;
-			short offset = (short)(Layer.TileSize * 16 + 2);
-			if (Layer.ContainsKey(Position.X - Layer.TileSize, Position.Y)) frameX += offset;
-			if (Layer.ContainsKey(Position.X + Layer.TileSize, Position.Y)) frameX += (short)(offset * 2);
-			if (Layer.ContainsKey(Position.X, Position.Y - Layer.TileSize)) frameY += offset;
-			if (Layer.ContainsKey(Position.X, Position.Y + Layer.TileSize)) frameY += (short)(offset * 2);
-			Frame = new Point16(frameX, frameY);
-		}
-
-		public virtual void OnRemove()
-		{
-		}
-
-		public virtual void Draw(SpriteBatch spriteBatch)
-		{
-			Vector2 position = Position.ToVector2() * 16 - Main.screenPosition;
-			Color color = Lighting.GetColor(Position.X, Position.Y);
-			spriteBatch.Draw(ModContent.GetTexture(Texture), position, new Rectangle(Frame.X, Frame.Y, Layer.TileSize * 16, Layer.TileSize * 16), color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
-		}
-
-		public virtual void Update()
-		{
-		}
-
-		public virtual TagCompound Save() => new TagCompound();
-
-		public virtual void Load(TagCompound tag)
-		{
+			// todo: implement
 		}
 	}
 }

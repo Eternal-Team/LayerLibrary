@@ -46,6 +46,7 @@
     <Compile Include="BaseLayerItem.cs" />
     <Compile Include="LayerLibrary.cs" />
     <Compile Include="ModLayer.cs" />
+    <Compile Include="ModLayerElement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
