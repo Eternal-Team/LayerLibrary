@@ -40,8 +40,15 @@ namespace LayerLibrary
 		public virtual void Draw(SpriteBatch spriteBatch)
 		{
 			Vector2 position = Position.ToVector2() * 16 - Main.screenPosition;
-			Color color = Lighting.GetColor(Position.X, Position.Y);
-			spriteBatch.Draw(ModContent.GetTexture(Texture), position, new Rectangle(Frame.X, Frame.Y, Layer.TileSize * 16, Layer.TileSize * 16), color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
+
+			for (int x = 0; x < Layer.TileSize; x++)
+			{
+				for (int y = 0; y < Layer.TileSize; y++)
+				{
+					Color color = Lighting.GetColor(Position.X + x, Position.Y + y);
+					spriteBatch.Draw(ModContent.GetTexture(Texture), position+new Vector2(x*16,y*16), new Rectangle(Frame.X + 16 * x, Frame.Y + 16 * y, 16, 16), color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
+				}
+			}
 		}
 
 		public virtual void Update()

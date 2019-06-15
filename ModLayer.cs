@@ -84,10 +84,10 @@ namespace LayerLibrary
 			Vector2 zero = new Vector2(Main.offScreenRange);
 			if (Main.drawToScreen) zero = Vector2.Zero;
 
-			int startX = (int)((Main.screenPosition.X - zero.X) / 16f);
-			int endX = (int)((Main.screenPosition.X + Main.screenWidth + zero.X) / 16f);
-			int startY = (int)((Main.screenPosition.Y - zero.Y) / 16f);
-			int endY = (int)((Main.screenPosition.Y + Main.screenHeight + zero.Y) / 16f);
+			int startX = (int)((Main.screenPosition.X - zero.X) / 16f) - 3;
+			int endX = (int)((Main.screenPosition.X + Main.screenWidth + zero.X) / 16f) + 3;
+			int startY = (int)((Main.screenPosition.Y - zero.Y) / 16f) - 3;
+			int endY = (int)((Main.screenPosition.Y + Main.screenHeight + zero.Y) / 16f) + 3;
 
 			foreach (KeyValuePair<Point16, T> pair in data)
 			{
@@ -153,9 +153,10 @@ namespace LayerLibrary
 			{
 				T element = this[posX, posY];
 
-				foreach (T neighbor in element.GetNeighbors()) neighbor.UpdateFrame();
 				element.OnRemove();
 				data.Remove(new Point16(posX, posY));
+
+				foreach (T neighbor in element.GetNeighbors()) neighbor.UpdateFrame();
 
 				Item.NewItem(posX * 16, posY * 16, TileSize * 16, TileSize * 16, item.item.type);
 			}
