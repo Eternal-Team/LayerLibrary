@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using System.IO;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
@@ -17,6 +18,7 @@ namespace LayerLibrary
 		public Point16 Frame;
 
 		public abstract string Texture { get; }
+		public abstract int DropItem { get; }
 
 		public virtual void UpdateFrame()
 		{
@@ -39,14 +41,15 @@ namespace LayerLibrary
 
 		public virtual void Draw(SpriteBatch spriteBatch)
 		{
-			Vector2 position = Position.ToVector2() * 16 - Main.screenPosition;
+			Vector2 position = Position.ToScreenCoordinates(false);
 
 			for (int x = 0; x < Layer.TileSize; x++)
 			{
 				for (int y = 0; y < Layer.TileSize; y++)
 				{
 					Color color = Lighting.GetColor(Position.X + x, Position.Y + y);
-					spriteBatch.Draw(ModContent.GetTexture(Texture), position+new Vector2(x*16,y*16), new Rectangle(Frame.X + 16 * x, Frame.Y + 16 * y, 16, 16), color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
+
+					spriteBatch.Draw(ModContent.GetTexture(Texture), position + new Vector2(x, y) * 16, new Rectangle(Frame.X + 16 * x, Frame.Y + 16 * y, 16, 16), color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f);
 				}
 			}
 		}
@@ -54,6 +57,12 @@ namespace LayerLibrary
 		public virtual void Update()
 		{
 		}
+
+		public virtual bool Interact() => false;
+
+		public virtual void NetSend(BinaryWriter writer) { }
+
+		public virtual void NetReceive(BinaryReader reader) { }
 
 		public virtual TagCompound Save() => new TagCompound();
 
@@ -73,10 +82,14 @@ namespace LayerLibrary
 		{
 			switch (side)
 			{
-				case Side.Bottom: return Layer.ContainsKey(Position.X, Position.Y + Layer.TileSize) ? Layer[Position.X, Position.Y + Layer.TileSize] : null;
-				case Side.Top: return Layer.ContainsKey(Position.X, Position.Y - Layer.TileSize) ? Layer[Position.X, Position.Y - Layer.TileSize] : null;
-				case Side.Left: return Layer.ContainsKey(Position.X - Layer.TileSize, Position.Y) ? Layer[Position.X - Layer.TileSize, Position.Y] : null;
-				case Side.Right: return Layer.ContainsKey(Position.X + Layer.TileSize, Position.Y) ? Layer[Position.X + Layer.TileSize, Position.Y] : null;
+				case Side.Bottom:
+					return Layer.ContainsKey(Position.X, Position.Y + Layer.TileSize) ? Layer[Position.X, Position.Y + Layer.TileSize] : null;
+				case Side.Top:
+					return Layer.ContainsKey(Position.X, Position.Y - Layer.TileSize) ? Layer[Position.X, Position.Y - Layer.TileSize] : null;
+				case Side.Left:
+					return Layer.ContainsKey(Position.X - Layer.TileSize, Position.Y) ? Layer[Position.X - Layer.TileSize, Position.Y] : null;
+				case Side.Right:
+					return Layer.ContainsKey(Position.X + Layer.TileSize, Position.Y) ? Layer[Position.X + Layer.TileSize, Position.Y] : null;
 			}
 
 			return null;

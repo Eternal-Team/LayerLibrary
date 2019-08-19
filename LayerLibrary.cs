@@ -4,6 +4,5 @@ namespace LayerLibrary
 {
 	public class LayerLibrary : Mod
 	{
-
 	}
 }

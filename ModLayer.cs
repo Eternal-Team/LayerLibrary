@@ -1,13 +1,22 @@
-﻿using Microsoft.Xna.Framework;
+﻿using BaseLibrary;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+using System.IO;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader.IO;
 
 namespace LayerLibrary
 {
-	public abstract class ModLayer<T> where T : ModLayerElement<T>, new()
+	public interface IModLayer
+	{
+		bool Place(BaseLayerItem item);
+
+		void Remove();
+	}
+
+	public abstract class ModLayer<T> : IModLayer where T : ModLayerElement<T>, new()
 	{
 		public abstract int TileSize { get; }
 
@@ -35,6 +44,62 @@ namespace LayerLibrary
 		public bool ContainsKey(Point16 position) => data.ContainsKey(position);
 
 		public bool ContainsKey(int i, int j) => data.ContainsKey(new Point16(i, j));
+
+		public bool TryGetValue(Point16 position, out T element)
+		{
+			if (ContainsKey(position))
+			{
+				element = this[position];
+				return true;
+			}
+
+			element = null;
+			return false;
+		}
+
+		public bool TryGetValue(int i, int j, out T element)
+		{
+			if (ContainsKey(i, j))
+			{
+				element = this[i, j];
+				return true;
+			}
+
+			element = null;
+			return false;
+		}
+
+		public virtual void NetSend(BinaryWriter writer)
+		{
+			writer.Write(data.Count);
+
+			foreach (KeyValuePair<Point16, T> pair in data)
+			{
+				writer.Write(pair.Key);
+				pair.Value.NetSend(writer);
+			}
+		}
+
+		public virtual void NetReceive(BinaryReader reader)
+		{
+			data.Clear();
+
+			int count = reader.ReadInt32();
+
+			for (int i = 0; i < count; i++)
+			{
+				T element = new T
+				{
+					Position = reader.ReadPoint16(),
+					Frame = Point16.Zero,
+					Layer = this
+				};
+				element.NetReceive(reader);
+				data.Add(element.Position, element);
+			}
+
+			foreach (T element in data.Values) element.UpdateFrame();
+		}
 
 		public virtual List<TagCompound> Save()
 		{
@@ -107,7 +172,7 @@ namespace LayerLibrary
 			foreach (T element in data.Values) element.Update();
 		}
 
-		public virtual bool Place(BaseLayerItem<T> item)
+		public virtual bool Place(BaseLayerItem item)
 		{
 			int posX = Player.tileTargetX;
 			int posY = Player.tileTargetY;
@@ -138,7 +203,7 @@ namespace LayerLibrary
 			return false;
 		}
 
-		public virtual void Remove(BaseLayerItem<T> item)
+		public virtual void Remove()
 		{
 			int posX = Player.tileTargetX;
 			int posY = Player.tileTargetY;
@@ -158,13 +223,10 @@ namespace LayerLibrary
 
 				foreach (T neighbor in element.GetNeighbors()) neighbor.UpdateFrame();
 
-				Item.NewItem(posX * 16, posY * 16, TileSize * 16, TileSize * 16, item.item.type);
+				Item.NewItem(posX * 16, posY * 16, TileSize * 16, TileSize * 16, element.DropItem);
 			}
 		}
 
-		public virtual void Interact()
-		{
-			// todo: implement
-		}
+		public virtual bool Interact() => false;
 	}
 }

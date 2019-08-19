@@ -5,9 +5,9 @@ using Terraria.ID;
 
 namespace LayerLibrary
 {
-	public abstract class BaseLayerItem<T> : BaseItem where T : ModLayerElement<T>, new()
+	public abstract class BaseLayerItem : BaseItem
 	{
-		public abstract ModLayer<T> Layer { get; }
+		public abstract IModLayer Layer { get; }
 
 		public override void SetDefaults()
 		{
@@ -27,7 +27,7 @@ namespace LayerLibrary
 
 		public override bool ConsumeItem(Player player)
 		{
-			if (player.altFunctionUse == 2) Layer.Remove(this);
+			if (player.altFunctionUse == 2) Layer.Remove();
 			else return Layer.Place(this);
 
 			return false;
@@ -41,7 +41,7 @@ namespace LayerLibrary
 				Player.tileRangeX * 64,
 				Player.tileRangeY * 64);
 
-			return rectangle.Contains(Player.tileTargetX*16, Player.tileTargetY * 16);
+			return rectangle.Contains(Player.tileTargetX * 16, Player.tileTargetY * 16);
 		}
 	}
 }
