@@ -25,6 +25,8 @@ namespace LayerLibrary
 
 		protected Dictionary<Point16, T> data;
 
+		public int Count => data.Count;
+
 		public ModLayer()
 		{
 			data = new Dictionary<Point16, T>();
