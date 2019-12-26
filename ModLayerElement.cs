@@ -60,9 +60,13 @@ namespace LayerLibrary
 
 		public virtual bool Interact() => false;
 
-		public virtual void NetSend(BinaryWriter writer) { }
+		public virtual void NetSend(BinaryWriter writer)
+		{
+		}
 
-		public virtual void NetReceive(BinaryReader reader) { }
+		public virtual void NetReceive(BinaryReader reader)
+		{
+		}
 
 		public virtual TagCompound Save() => new TagCompound();
 
@@ -70,7 +74,7 @@ namespace LayerLibrary
 		{
 		}
 
-		public IEnumerable<T> GetNeighbors()
+		public virtual IEnumerable<T> GetNeighbors()
 		{
 			if (Layer.ContainsKey(Position.X + Layer.TileSize, Position.Y)) yield return Layer[Position.X + Layer.TileSize, Position.Y];
 			if (Layer.ContainsKey(Position.X - Layer.TileSize, Position.Y)) yield return Layer[Position.X - Layer.TileSize, Position.Y];

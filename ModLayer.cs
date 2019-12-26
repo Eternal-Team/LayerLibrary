@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader.IO;
@@ -101,20 +102,11 @@ namespace LayerLibrary
 			foreach (T element in data.Values) element.UpdateFrame();
 		}
 
-		public virtual List<TagCompound> Save()
+		public virtual List<TagCompound> Save() => data.Values.Select(element => new TagCompound
 		{
-			List<TagCompound> list = new List<TagCompound>();
-			foreach (T element in data.Values)
-			{
-				list.Add(new TagCompound
-				{
-					["Position"] = element.Position,
-					["Data"] = element.Save()
-				});
-			}
-
-			return list;
-		}
+			["Position"] = element.Position,
+			["Data"] = element.Save()
+		}).ToList();
 
 		public virtual void Load(List<TagCompound> list)
 		{
@@ -129,7 +121,7 @@ namespace LayerLibrary
 					Layer = this
 				};
 				element.Load(tag.GetCompound("Data"));
-				data.Add(element.Position, element);
+				data[element.Position] = element;
 			}
 
 			foreach (T element in data.Values) element.UpdateFrame();

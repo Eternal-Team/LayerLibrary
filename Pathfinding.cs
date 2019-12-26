@@ -7,58 +7,57 @@ namespace LayerLibrary
 {
 	public static class Pathfinding
 	{
-		private class Node
+		private class Node<T> where T : ModLayerElement<T>, new()
 		{
-			public int X;
-			public int Y;
+			public T Element;
+			public Point16 Position => Element.Position;
 
 			public int F;
 			public int G;
 			public int H;
 
-			public Node Parent;
+			public Node<T> Parent;
+
+			public Node(T element)
+			{
+				Element = element;
+			}
 		}
 
-		private static int ComputeHScore(Node current, Node target) => Math.Abs(target.X - current.X) + Math.Abs(target.Y - current.Y);
+		private static int ComputeHScore<T>(T current, T target) where T : ModLayerElement<T>, new() => Math.Abs(target.Position.X - current.Position.X) + Math.Abs(target.Position.Y - current.Position.Y);
 
-		private static IEnumerable<Node> GetNeighborNodes<T>(IEnumerable<T> Tiles, Node node) where T : ModLayerElement<T>, new()
+		public static Stack<Point16> FindPath<T>(T startPos, T endPos) where T : ModLayerElement<T>, new()
 		{
-			return Tiles.First(tube => tube.Position.X == node.X && tube.Position.Y == node.Y).GetNeighbors().Select(neighbor => new Node { X = neighbor.Position.X, Y = neighbor.Position.Y });
-		}
+			Node<T> current = default;
 
-		public static Stack<Point16> FindPath<T>(List<T> network, Point16 startPos, Point16 endPos) where T : ModLayerElement<T>, new()
-		{
-			Node current = null;
-			var start = new Node { X = startPos.X, Y = startPos.Y };
-			var target = new Node { X = endPos.X, Y = endPos.Y };
-			var openList = new List<Node>();
-			var closedList = new List<Node>();
+			var openList = new List<Node<T>>();
+			var closedList = new List<Node<T>>();
 			int g = 0;
 
-			openList.Add(start);
+			openList.Add(new Node<T>(startPos));
 
 			while (openList.Count > 0)
 			{
-				var lowest = openList.Min(l => l.F);
-				current = openList.First(l => l.F == lowest);
+				int lowest = openList.Min(node => node.F);
+				current = openList.First(node => node.F == lowest);
 
 				closedList.Add(current);
 
 				openList.Remove(current);
 
-				if (closedList.FirstOrDefault(l => l.X == target.X && l.Y == target.Y) != null) break;
+				if (closedList.FirstOrDefault(node => node.Position.X == endPos.Position.X && node.Position.Y == endPos.Position.Y) != default) break;
 
-				var adjacentSquares = GetNeighborNodes(network, current);
+				IEnumerable<Node<T>> adjacentSquares = current.Element.GetNeighbors().Select(neighbor => new Node<T>(neighbor));
 				g++;
 
 				foreach (var adjacentSquare in adjacentSquares)
 				{
-					if (closedList.FirstOrDefault(l => l.X == adjacentSquare.X && l.Y == adjacentSquare.Y) != null) continue;
+					if (closedList.FirstOrDefault(node => node.Position.X == adjacentSquare.Position.X && node.Position.Y == adjacentSquare.Position.Y) != default) continue;
 
-					if (openList.FirstOrDefault(l => l.X == adjacentSquare.X && l.Y == adjacentSquare.Y) == null)
+					if (openList.FirstOrDefault(node => node.Position.X == adjacentSquare.Position.X && node.Position.Y == adjacentSquare.Position.Y) == default)
 					{
 						adjacentSquare.G = g;
-						adjacentSquare.H = ComputeHScore(adjacentSquare, target);
+						adjacentSquare.H = ComputeHScore(adjacentSquare.Element, endPos);
 						adjacentSquare.F = adjacentSquare.G + adjacentSquare.H;
 						adjacentSquare.Parent = current;
 
@@ -77,9 +76,9 @@ namespace LayerLibrary
 			}
 
 			Stack<Point16> points = new Stack<Point16>();
-			while (current != null)
+			while (current != default)
 			{
-				points.Push(new Point16(current.X, current.Y));
+				points.Push(new Point16(current.Position.X, current.Position.Y));
 
 				current = current.Parent;
 			}
