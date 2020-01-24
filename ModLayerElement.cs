@@ -35,7 +35,7 @@ namespace LayerLibrary
 		{
 		}
 
-		public virtual void OnPlace()
+		public virtual void OnPlace(BaseLayerItem item)
 		{
 		}
 
@@ -53,6 +53,8 @@ namespace LayerLibrary
 				}
 			}
 		}
+
+		public virtual void PostDraw(SpriteBatch spriteBatch) { } 
 
 		public virtual void Update()
 		{

@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader.IO;
@@ -148,12 +149,15 @@ namespace LayerLibrary
 			int startY = (int)((Main.screenPosition.Y - zero.Y) / 16f) - 3;
 			int endY = (int)((Main.screenPosition.Y + Main.screenHeight + zero.Y) / 16f) + 3;
 
-			foreach (KeyValuePair<Point16, T> pair in data)
+			var visible = data.Where(pair => pair.Key.X > startX && pair.Key.X < endX && pair.Key.Y > startY && pair.Key.Y < endY);
+			foreach (var pair in visible)
 			{
-				if (pair.Key.X > startX && pair.Key.X < endX && pair.Key.Y > startY && pair.Key.Y < endY)
-				{
-					pair.Value.Draw(spriteBatch);
-				}
+				pair.Value.Draw(spriteBatch);
+			}
+
+			foreach (var pair in visible)
+			{
+				pair.Value.PostDraw(spriteBatch);
 			}
 		}
 
@@ -186,7 +190,7 @@ namespace LayerLibrary
 					Layer = this
 				};
 				data.Add(new Point16(posX, posY), element);
-				element.OnPlace();
+				element.OnPlace(item);
 
 				element.UpdateFrame();
 				foreach (T neighbor in element.GetNeighbors()) neighbor.UpdateFrame();
